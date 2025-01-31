@@ -1,6 +1,6 @@
 ---
 title: '5\. Worksheet: Alpha Diversity'
-author: "Student Name; Z620: Quantitative Biodiversity, Indiana University"
+author: "Aishwarya Vaidya; Z620: Quantitative Biodiversity, Indiana University"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 geometry: margin = 2.54cm
@@ -34,8 +34,10 @@ In the R code chunk below, please provide the code to:
 3) Set your working directory to your `Week-2/` folder folder, and
 4) Load the `vegan` R package (be sure to install first if you have not already).
 
-```{r}
-
+>```{r}
+getwd()
+setwd("/cloud/project/QB2025_Vaidya/Week2-Alpha")
+reuire(vegan)
 
 
 
@@ -44,12 +46,13 @@ In the R code chunk below, please provide the code to:
 ## 2) LOADING DATA
 
 In the R code chunk below, do the following:
-1) Load the BCI dataset, and 
-2) Display the structure of the dataset (if the structure is long, use the `max.level = 0` argument to show the basic information).
+1)Load the BCI dataset, and 
+2) Display the structure of the dataset (if the structure is long, use the max.level = 0 argument to show the basic information).
 
 ```{r}
 
-
+>data(BCI)
+str(BCI, max.level = 0)
 ```
 
 ## 3) SPECIES RICHNESS
@@ -67,10 +70,19 @@ In the R code chunk below, do the following:
 3. Compare the output of your function to the output of the `specnumber()` function in `vegan`.
 
 ```{r}
+ data(BCI)
+S.obs <- function(site) {
+  return(sum(site > 0))
+}
 
-# S.obs <- function(   ){
-#   rowSums(     ) * 
-#   }
+> observed_richness <- S.obs(BCI[1, ])
+vegan_richness <- specnumber(BCI[1, ])
+vegan_richness
+vegan_richness <- specnumber(BCI[1, ])
+vegan_richness
+
+
+
 
 ```
 
@@ -78,7 +90,19 @@ In the R code chunk below, do the following:
 What is the species richness of the first four sites (i.e., rows) of the BCI matrix?
 
 > ***Answer 1***:
->
+>Yes both first four sites present same values of  1  2  3  4 
+93 84 90 94 
+```{r}
+S.obs <- function(site) {return(sum(site > 0))}
+ observed_richness <- S.obs(BCI[1, ])
+ vegan_richness <- specnumber(BCI[1, ])
+ observed_richness
+ richness_custom <- apply(BCI[1:4, ], 1, S.obs)
+ richness_custom
+ richness_vegan <- specnumber(BCI[1:4, ])
+ richness_vegan
+ 
+```
 
 
 ### Coverage: How well did you sample your site?
@@ -88,8 +112,20 @@ In the R code chunk below, do the following:
 1. Write a function to calculate Good's Coverage, and
 
 2. Use that function to calculate coverage for all sites in the BCI matrix.
-
+>
 ```{r}
+> Goods_Coverage <- function(site) { N <- sum(site)
+F1 <- sum(site == 1)
+if (N == 0) {
+    return(NA) }
+    else { return(1 - (F1 / N)) }}  
+#function to all sites in BCI
+coverage_values <- apply(BCI, 1, Goods_Coverage)
+coverage_values
+
+
+
+
 
 
 ```
@@ -101,17 +137,44 @@ b.  What would we conclude from Good's Coverage if $n_{i}$ equaled *N*?
 c.  What portion of taxa in `site1` was represented by singletons? 
 d.  Make some observations about coverage at the BCI plots.
 
-> ***Answer 2a***:
+> ***Answer 2a***: Good’s Coverage ranges between 0 and 1.
 >
 
 > ***Answer 2b***:
->
+>Good’s Coverage is defined as:𝐶=1-(F1/N)
+Since F1 is the number of singletons i.e observed only once , while
+N is the total number of individuals observed, then F=0 means C=1, suggesting perhaps a complet dataset where none appear only once suggesting high completedness.
 
 > ***Answer 2c***: 
->
+> Thus a lower fraction of o.33 observed for the code below suggests the specieswas observed several times.
+```{r}
+>site1 <- BCI[1, ] 
+F1 <- sum(site1 == 1)
+N <- sum(site1 > 0)
+singleton_fraction <- F1 / N
+singleton_fraction
+```
 
 > ***Answer 2d***: 
->
+>Since majority of them are more than 0.8 on the Good's coverage
+```{r}
+Goods_Coverage <- function(site) {
+N <- sum(site) 
+F1 <- sum(site == 1)
+if (N == 0) {
+    return(NA) 
+} else {
+    return(1 - (F1 / N))
+  }
+}
+#for all sites in BCI
+coverage_values <- apply(BCI, 1, Goods_Coverage)
+summary(coverage_values)
+hist(coverage_values, main = "Distribution of Good's Coverage in BCI Sites",
+     xlab = "Good's Coverage", col = "lightblue", border = "black")
+
+
+```
 
 
 ### Estimated richness
@@ -129,9 +192,16 @@ In the R code chunk below, do the following:
 5. Calculate coverage of that site
 
 ```{r}
-
-
-
+soilbac.t <- as.data.frame(t(soilbac))
+soilbac1 <- soilbac.t[1, ]
+N_soilbac1 <- sum(soilbac.t$T1_1)
+N_soilbac1
+observed_richness <- sum(soilbac1 > 0)
+observed_richness
+singleton_count <- sum(soilbac1 == 1)
+total_reads <- sum(soilbac1)
+coverage <- 1 - (singleton_count / total_reads)
+coverage
 
 
 
@@ -144,13 +214,43 @@ b.  What is the observed richness of `soilbac1`?
 c.  How does coverage compare between the BCI sample (`site1`) and the KBS sample (`soilbac1`)?
 
 > ***Answer 3a***:
->
+>0
+```{r}
+soilbac.t <- as.data.frame(t(soilbac))
+soilbac1 <- soilbac.t[1, ]
+N_soilbac1 <- sum(soilbac.t$T1_1)
+N_soilbac1
+
+```
 
 > ***Answer 3b***: 
->
+>1074
+```{r}
+observed_richness <- sum(soilbac1 > 0)
+observed_richness
+```
 
 > ***Answer 3c***: 
->
+> It is 0 for BCI sample (site1) while 0.648 for KBS sample soilbac1.
+```{r}
+t.BCI <- t(BCI)
+ site1 <- t.BCI[1, ]
+ singleton_count_site1 <- sum(site1 == 1)
+ total_reads_site1 <- sum(site1)
+ coverage_site1 <- 1 - (singleton_count_site1 / total_reads_site1)
+ coverage_site1
+ soilbac.t <- as.data.frame(t(soilbac))
+  soilbac1 <- soilbac.t[1, ]
+ singleton_count_soilbac1 <- sum(soilbac1 == 1)
+ total_reads_soilbac1 <- sum(soilbac1)
+ coverage_soilbac1 <- 1 - (singleton_count_soilbac1 / total_reads_soilbac1)
+ coverage_soilbac1
+ 
+
+
+
+```
+
 
 
 ### Richness estimators
@@ -167,9 +267,59 @@ In the R code chunk below, do the following:
 
 ```{r}
 
+>S.chao1 <- function(x) { 
+  S.obs <- specnumber(x)  
+  Q1 <- sum(x == 1)  
+  Q2 <- sum(x == 2)  
+  if (Q2 == 0) {
+    return(S.obs)  
+  } else {
+    return(S.obs + (Q1^2) / (2 * Q2))
+  }
+}
+
+> S.chao2 <- function(site, SbyS) { SbyS <- as.data.frame(SbyS)
++ x <- SbyS[site, ]
++ SbyS.pa <- (SbyS > 0) * 1
++ Q1 <- sum(colSums(SbyS.pa) == 1)
++ Q2 <- sum(colSums(SbyS.pa) == 2)
++ S.obs <- specnumber(x)
++ if (Q2 == 0) {
++ S.chao2 <- S.obs
++ } else {
++ S.chao2 <- S.obs + (Q1^2) / (2 * Q2)
+ }
++ return(S.chao2)
+ }
+ 
+
+> S.ace <- function(x, thresh = 10) {
++ x <- x[x > 0]
++ S.abund <- sum(x > thresh)
++ S.rare <- sum(x <= thresh)
++ singlt <- sum(x == 1)
++ N.rare <- sum(x[which(x <= thresh)])
++ if (N.rare == 0) {
++ return(S.abund)  
+ }
++ 
++ C.ace <- 1 - (singlt / N.rare)
++ i <- 1:thresh 
++ count <- function(i, y) sum(y == i)
++ a.1 <- sapply(i, count, x)
++ f.1 <- sum(i * (i - 1) * a.1)
++ G.ace <- (S.rare / C.ace) + (singlt / C.ace) * max(f.1 / (N.rare * (N.rare - 1)), 0)  
++ 
++ return(G.ace)
+}
 
 
-
+>BCI.t <- as.data.frame(t(BCI))
+ site1 <- t.BCI[1, ]
+ cat("Richness estimates for site1 (BCI):\n")
+ cat("Chao1:", S.chao1(site1), "\n")
+cat("Chao2:", S.chao2("site1", t.BCI), "\n")
+cat("ACE:", S.ace(site1), "\n")
 
 
 
@@ -182,7 +332,7 @@ Do the estimators give consistent results?
 Which one would you choose to use and why?
 
 > ***Answer 4***:
->
+>Chao1 estimates species richness by counting rare species in abundance data, while Chao2 looks at presence-absence across samples. ACE, on the other hand, separates common and rare species using a set cutoff (usually 10) and considers how often species appear. These methods can give different results—Chao estimators are more cautious and work best when data is incomplete, while ACE is more reliable when species vary in how often they show up. Choosing the right method depends on the data; Chao1 is better when many species are missing, while ACE works well when species are found at different frequencies.
 
 
 ### Rarefaction
@@ -228,10 +378,18 @@ In the R code chunk below, do the following:
 4. Return the ranked vector
 
 ```{r}
+> construct_RAC <- function(abundance_vector) {
++ abundance_vector <- abundance_vector[abundance_vector > 0]
++ ranked_vector <- sort(abundance_vector, decreasing = TRUE)
++ return(ranked_vector)
+ }
 
-
-
-
+> RAC <- function(x = ""){
+x.ab = x[x<0]
+x.ab.ranked = x.ab[order(x.ab, decreasing = TRUE)]
+as.data.frame(lapply(x.ab.ranked, unlist))
+return(x.ab.ranked)
+}
 
 
 
@@ -248,6 +406,22 @@ In the R code chunk below, do the following:
 ```{r}
 
 
+ plot.new()
+site1 <- BCI[1, ]
+   rac<- RAC( x = site1)
+ranks <- as.vector(seq(1, length(rac)))
+opar <- par(no.readonly = TRUE)
+par(mar = c(5.1, 5.1, 4.1, 2.1))
+plot(ranks, log(rac), type = 'p', axes = F,
+xlab = "Rank in abundance", ylab = "Abundance", 
+las = 1, cex.lab = 1.4, cex.axis = 1.25)
+    box()
+axis(side = 1, labels = T, cex.axis =1.25)
+axis(side = 2, las =1, cex.axis =1.25,
+labels = c(1,2,5,10,20), at = log(c(1,2,5,10,20)))
+
+
+
 
 
 
@@ -257,7 +431,7 @@ In the R code chunk below, do the following:
 ***Question 5***: What effect does visualizing species abundance data on a log-scaled axis have on how we interpret evenness in the RAC?
 
 > ***Answer 5***:
-
+> Using a log scale on a Rank Abundance Curve (RAC) makes it easier to see how evenly species are distributed in a community. Without a log scale, the most common species can dominate the graph, hiding the less common ones. With the log scale, the differences between rare species become clearer. A steep slope on a log scale means some species are way more abundant than others (low evenness), while a flatter slope means the species are more evenly distributed (high evenness). Basically, it helps us see the whole picture, not just the key players within.
 
 Now that we have visualized unevennes, it is time to quantify it using Simpson's evenness ($E_{1/D}$) and Smith and Wilson's evenness index ($E_{var}$).
 
@@ -270,6 +444,16 @@ In the R code chunk below, do the following:
 2. Calculate $E_{1/D}$ for `site1`.
 
 ```{r}
+SimpE <- function(x = ""){
+S <- S.obs(x)
+x = as.data.frame(x)
+D <- diversity(x, "inv")
+E <- (D)/S
+return(E)
+}
+
+site1 <- BCI [1, ]
+SimpE(site1)
 
 
 
@@ -292,7 +476,12 @@ In the R code chunk below, please do the following:
 
 ```{r}
 
+Evar <- function (x){
+x <- as.vector(x[x>0])
+1- (2/pi) * atan(var(log(x)))
+}
 
+Evar(site1)
 
 
 
@@ -303,7 +492,7 @@ In the R code chunk below, please do the following:
 Do they agree? If so, why? If not, why? What can you infer from the results.
 
 > ***Answer 6***:
-
+The values SimpE = 0.42 and Evar = 0.51 both measure how evenly species are spread out in the community. SimpE suggests that the species are somewhat uneven, with a few being more dominant. On the other hand, Evar is a bit higher, meaning the species are more evenly spread out when you consider both the number of species and their abundance. So, overall, Evar shows a slightly more balanced distribution of species in site1 compared to SimpE. Since $E_{1/D}$ is less than $E_{var}$, it might mean a few species are taking over, even if there are lots of species overall.
 
 ## 5) INTEGRATING RICHNESS AND EVENNESS: DIVERSITY METRICS
 
@@ -320,11 +509,31 @@ In the R code chunk below, please do the following:
 2. Compare this estimate with the output of `vegan`'s diversity function using method = "shannon".
 
 ```{r}
+ShanH <- function (x= "") {
+H =0
+for (n_i in x){
+if (n_i >0){
+p = n_i / sum(x)
+H = H - p*log(p)
+}
+}
+return(H)
+}
 
+diversity(site1, index = "shannon")
 
-
-
-
+SimpD <- function (x=""){
+D=0
+N= sum(x)
+for (n_i in x){
+D= D+ (n_i^2)/(N^2)
+}
+return(D)
+}
+D.inv <- 1/SimpD(site1)
+D.sub <- 1-SimpD(site1)
+diversity(site1, "inv")
+diversity(site1, "simp")
 
 
 
@@ -343,6 +552,8 @@ In the R code chunk below, please do the following:
 
 ```{r}
 
+diversity(site1, "inv")
+diversity(site1, "simp")
 
 
 
