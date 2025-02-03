@@ -70,7 +70,7 @@ In the R code chunk below, do the following:
 3. Compare the output of your function to the output of the `specnumber()` function in `vegan`.
 
 ```{r}
- data(BCI)
+data(BCI)
 S.obs <- function(site) {
   return(sum(site > 0))
 }
@@ -267,7 +267,7 @@ In the R code chunk below, do the following:
 
 ```{r}
 
->S.chao1 <- function(x) { 
+ >S.chao1 <- function(x) { 
   S.obs <- specnumber(x)  
   Q1 <- sum(x == 1)  
   Q2 <- sum(x == 2)  
@@ -351,7 +351,21 @@ In the R code chunk below, please do the following:
 
 
 ```{r}
-
+>S.obs <- function(x = ""){
+rowSums(x > 0) + 1
+}
+S.obs(soilbac.t)
+C <- function(x = ""){
+1 - (rowSums (x ==1)/ rowSums(x))
+}
+smallest_sample_size <- min(rowSums(soilbac))
+smallest_sample_size
+soilbac.S <- S.obs(soilbac.t)
+ min.N <- min(rowSums(soilbac.t))
+ S.rarefy <- rarefy(x=soilbac.t, sample = min.N, se = TRUE)
+ rarecurve(x = soilbac.t, step = 20, col = "blue", cex = 0.6, las = 1)
+ abline(0,1, col = 'red')
+ text(1500, "1:1", pos=2, col = 'red')
 
 
 
@@ -385,7 +399,7 @@ In the R code chunk below, do the following:
  }
 
 > RAC <- function(x = ""){
-x.ab = x[x<0]
+x.ab = x[x>0]
 x.ab.ranked = x.ab[order(x.ab, decreasing = TRUE)]
 as.data.frame(lapply(x.ab.ranked, unlist))
 return(x.ab.ranked)
@@ -406,7 +420,7 @@ In the R code chunk below, do the following:
 ```{r}
 
 
- plot.new()
+> plot.new()
 site1 <- BCI[1, ]
    rac<- RAC( x = site1)
 ranks <- as.vector(seq(1, length(rac)))
@@ -444,14 +458,13 @@ In the R code chunk below, do the following:
 2. Calculate $E_{1/D}$ for `site1`.
 
 ```{r}
-SimpE <- function(x = ""){
+>SimpE <- function(x = ""){
 S <- S.obs(x)
 x = as.data.frame(x)
 D <- diversity(x, "inv")
 E <- (D)/S
 return(E)
 }
-
 site1 <- BCI [1, ]
 SimpE(site1)
 
@@ -476,11 +489,10 @@ In the R code chunk below, please do the following:
 
 ```{r}
 
-Evar <- function (x){
+>Evar <- function (x){
 x <- as.vector(x[x>0])
 1- (2/pi) * atan(var(log(x)))
 }
-
 Evar(site1)
 
 
@@ -492,7 +504,7 @@ Evar(site1)
 Do they agree? If so, why? If not, why? What can you infer from the results.
 
 > ***Answer 6***:
-The values SimpE = 0.42 and Evar = 0.51 both measure how evenly species are spread out in the community. SimpE suggests that the species are somewhat uneven, with a few being more dominant. On the other hand, Evar is a bit higher, meaning the species are more evenly spread out when you consider both the number of species and their abundance. So, overall, Evar shows a slightly more balanced distribution of species in site1 compared to SimpE. Since $E_{1/D}$ is less than $E_{var}$, it might mean a few species are taking over, even if there are lots of species overall.
+The values SimpE = 0.42 and Evar = 0.51 both measure how evenly species are spread out in the community. SimpE suggests that the species are somewhat uneven, with a few being more dominant. On the other hand, Evar is a bit higher, meaning the species are more evenly spread out when you consider both the number of species and their abundance. So, overall, Evar shows a slightly more balanced distribution of species in site1 compared to SimpE. Since $E_{1/D}$ is less than $E_{var}$, it might mean few species are taking over, even if there are lots of species overall.
 
 ## 5) INTEGRATING RICHNESS AND EVENNESS: DIVERSITY METRICS
 
@@ -522,7 +534,7 @@ return(H)
 
 diversity(site1, index = "shannon")
 
-SimpD <- function (x=""){
+SimpD <- function (x = ""){
 D=0
 N= sum(x)
 for (n_i in x){
@@ -551,9 +563,19 @@ In the R code chunk below, please do the following:
 2. Compare this estimate with the output of `vegan's` diversity function using method = "simp".
 
 ```{r}
-
+>SimpD <- function (x = ""){
+D=0
+N= sum(x)
+for (n_i in x){
+D= D+ (n_i^2)/(N^2)
+}
+return(D)
+}
+D.inv <- 1/SimpD(site1)
+D.sub <- 1-SimpD(site1)
 diversity(site1, "inv")
 diversity(site1, "simp")
+
 
 
 
@@ -577,15 +599,24 @@ In the R code chunk below, please do the following:
 2. Calculate Fisher's $\boldsymbol\alpha$ for `site1` of BCI.
 
 ```{r}
-
-
-
-
-
-
-
-
-
+>rac <- as.vector(site1[site1 >0])
+invD <- diversity(rac, "inv")
+invD
+Fisher <- fisher.alpha(rac)
+Fisher
+C1 <- data.frame (t(rep(1,500))); colnames(C1) <- paste("sp" , 1:500)
+C2 <- data.frame(t(c(rep(1, 250)))); colnames(C2) <- paste("sp", 1:250)
+H1 <- diversity (C1, index = 'shannon')
+H2 <- diversity (C2, index ='shannon')
+H1; H2
+H_all <-matrix(ncol =2, nrow = 1000)
+for (i in 1:1000){
+C <- data.frame(t(rep(1, i)))
+colnames(C) = paste ("sp", 1:i)
+H_all[i, 1] <- 1
+H_all[i, 2] <- diversity(C, index = 'shannon')
+}
+plot(H_all[ ,1], H_all[ , 2], xlab = "Species Richness', ylab = "Shannon Diversity (entropy)")
 
 
 
@@ -596,18 +627,18 @@ In the R code chunk below, please do the following:
 How is Fisher's $\boldsymbol\alpha$ different from $E_{H'}$ and $E_{var}$? 
 What does Fisher's $\boldsymbol\alpha$ take into account that $E_{H'}$ and $E_{var}$ do not?
 
-> ***Answer 7***:
+> ***Answer 7***:Fishers  $\boldsymbol\alpha$ is lower than  $E_{H'}$ and $E_{var}$, suggests there arent that many species to begin with, as Fisher's $\boldsymbol\alpha$ generally looks at the number of different species, while $E_{H'}$ is thrown off by the number of dominant species, while $E_{var}$ denotes how evenly the data is distributed. Fisher's alpha talks about how many species are part of the community, thus being concerned about the richness of the data, while the other two are mainly concerned about the evenness or normality of the data, without being much concerned about the total number of species. 
 
 ## 6) HILL NUMBERS 
 
 Remember that we have learned about the advantages of Hill Numbers to measure and compare diversity among samples. 
 We also learned to explore the effects of rare species in a community by examining diversity for a series of exponents $q$. 
 
-***Question 8***: Using `site1` of BCI and `vegan` package, a) calculate Hill numbers for $q$ exponent 0, 1 and 2 (richness, exponential Shannon's entropy, and inverse Simpson's diversity). b) Interpret the effect of rare species in your community based on the response of diversity to increasing exponent $q$. 
+***Question 8***: Using `site1` of BCI and `vegan` package, a) calculate Hill numbers for $q$ exponent 0, 1 and 2 (richness, exponential Shannon's entropy, and inverse Simpson's diversity). b) Interpret the effect of rare species in your community based on the response of diversity to increasing exponent $q$. Fishers
 
-> ***Answer 8a***:
+> ***Answer 8a***: q=0(richness) is 93; q=1(exponential Shannon's entropy) is 55.6 while q=2 (inverse Simpson's diversity) is 0.025. Since q0 is more than q1, many rare species exist contributing to the species richness but not as much to the species evenness. Now, since q1 is also more than q2, even within the abundant species, there are far less that are significantly dominant.Since q1 and q2 are very far apart, they are not dominated by rare species.
 >
-> ***Answer 8b***:
+> ***Answer 8b***: As the hill numbers reduce to increasing exponent $q$ Fishers means rare species make up large portion of the community but they dont contribute the species abundance.
 >
 
 ##7) MOVING BEYOND UNIVARIATE METRICS OF $\alpha$ DIVERSITY
@@ -632,8 +663,9 @@ In the R code chunk below, please do the following:
 3. Plot the results of the `radfit()` function using the code provided in the handout.
 
 ```{r}
-
-
+>RACresults <- radfit(site1)
+plot.new()
+plot(RACresults, las = 1, cex.lab = 1.4, cex.axis = 1.25)
 
 
 
