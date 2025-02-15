@@ -42,8 +42,9 @@ In the R code chunk below, provide the code to:
 4. load the `vegan` R package (be sure to install if needed).  
 
 ```{r}
-
-
+getwd()
+setwd("/cloud/project/QB2025_Vaidya/Week4-Beta")
+require(vegan)
 
 
 ```
