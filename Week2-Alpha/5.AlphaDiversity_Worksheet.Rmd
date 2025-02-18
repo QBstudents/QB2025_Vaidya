@@ -91,6 +91,7 @@ What is the species richness of the first four sites (i.e., rows) of the BCI mat
 > ***Answer 1***:
 >Yes both first four sites present same values of  1  2  3  4 
 93 84 90 94 
+
 ```{r}
 S.obs <- function(site) {return(sum(site > 0))}
  observed_richness <- S.obs(BCI[1, ])
@@ -100,7 +101,7 @@ S.obs <- function(site) {return(sum(site > 0))}
  richness_custom
  richness_vegan <- specnumber(BCI[1:4, ])
  richness_vegan
- 
+
 ```
 
 
@@ -111,7 +112,7 @@ In the R code chunk below, do the following:
 1. Write a function to calculate Good's Coverage, and
 
 2. Use that function to calculate coverage for all sites in the BCI matrix.
->
+
 ```{r}
  Goods_Coverage <- function(site) { N <- sum(site)
 F1 <- sum(site == 1)
@@ -121,10 +122,6 @@ if (N == 0) {
 
 coverage_values <- apply(BCI, 1, Goods_Coverage)
 coverage_values
-
-
-
-
 
 
 ```
@@ -146,6 +143,7 @@ N is the total number of individuals observed, then F=0 means C=1, suggesting pe
 
 > ***Answer 2c***: 
 > Thus a lower fraction of o.33 observed for the code below suggests the specieswas observed several times.
+
 ```{r}
 site1 <- BCI[1, ] 
 F1 <- sum(site1 == 1)
@@ -156,6 +154,7 @@ singleton_fraction
 
 > ***Answer 2d***: 
 >Since majority of them are more than 0.8 on the Good's coverage
+
 ```{r}
 Goods_Coverage <- function(site) {
 N <- sum(site) 
@@ -171,7 +170,6 @@ coverage_values <- apply(BCI, 1, Goods_Coverage)
 summary(coverage_values)
 hist(coverage_values, main = "Distribution of Good's Coverage in BCI Sites",
      xlab = "Good's Coverage", col = "lightblue", border = "black")
-
 
 ```
 
@@ -203,8 +201,6 @@ total_reads <- sum(soilbac1)
 coverage <- 1 - (singleton_count / total_reads)
 coverage
 
-
-
 ```
 
 ***Question 3***: Answer the following questions about the soil bacterial dataset. 
@@ -215,6 +211,7 @@ c.  How does coverage compare between the BCI sample (`site1`) and the KBS sampl
 
 > ***Answer 3a***:
 >0
+
 ```{r}
 soilbac.t <- as.data.frame(t(soilbac))
 soilbac1 <- soilbac.t[1, ]
@@ -232,6 +229,7 @@ observed_richness
 
 > ***Answer 3c***: 
 > It is 0 for BCI sample (site1) while 0.648 for KBS sample soilbac1.
+
 ```{r}
 t.BCI <- t(BCI)
  site1 <- t.BCI[1, ]
@@ -246,7 +244,6 @@ t.BCI <- t(BCI)
  coverage_soilbac1 <- 1 - (singleton_count_soilbac1 / total_reads_soilbac1)
  coverage_soilbac1
  
-
 
 
 ```
@@ -264,7 +261,9 @@ In the R code chunk below, do the following:
 3. Write a function to calculate **ACE**, and
 
 4. Use these functions to estimate richness at `site1` and `soilbac1`. 
+
 ```{r}
+
 data(BCI)
 BCI.t <- as.data.frame(t(BCI))
  site1 <- t.BCI[1, ]
@@ -342,7 +341,7 @@ S.ace <- function(x, thresh = 10) {
 
  cat("Richness estimates for site1 (BCI):\n")
  cat("Chao1:", S.chao1(site1), "\n")
-cat("Chao2:", S.chao2("site1", t.BCI), "\n")
+cat("Chao2:", S.chao2("site1", BCI.t), "\n")
 cat("ACE:", S.ace(site1), "\n")
 
 cat("Richness estimates for soilbac1:\n")
@@ -350,15 +349,16 @@ cat("Chao1:", S.chao1(soilbac1), "\n")
 cat("Chao2:", S.chao2(1, soilbac.t), "\n")
 cat("ACE:", S.ace(soilbac1), "\n") 
 
+ S.chao2(1, BCI)
+ 
+ site1
+ 
+ BCI.t
 
 ```
 
 
 
-```{r}
-
-
-```
 
 ***Question 4***: 
 What is the difference between ACE and the Chao estimators? 
