@@ -70,9 +70,14 @@ In the code chunk below, test the hypothesis that fish community composition var
 
 1. create a factor vector that categorizes habitat quality in the Doubs River,
 2. use the multivariate analyses for categorical predictors to describe how fish community structure relates to habitat quality.
+>A redundancy analysis i.e dbRDA, the best-fitting model included three key environmental factors: oxygen levels (oxy), biochemical oxygen demand (bdo), and nitrate concentration (nit). These variables together could explain about 53% (R2 = 0.5303) of the variation in fish communities. Oxygen had the strongest individual effect (R2 = 0.2773, p = 0.002), followed by biochemical oxygen demand (R2 = 0.4009, p = 0.002) and nitrate concentration (R2 = 0.4981, p = 0.004). A permutation test confirmed that the model as a whole was highly significant (F = 10.262, p = 0.001), meaning it's very unlikely these results happened by chance. When looking at how strongly each factor aligns with the main trends in fish distribution, all three variables were highly significant (p = 0.001), with oxygen and biochemical oxygen demand showing the strongest correlations.
 
 ```{r}
 
+library(ade4)
+data(doubs)
+fish <- doubs$fish
+fish <- fish[-8, ] # remove site 8 from data as has no observations
 #Create "Factors" vector
 quality <- c(rep("HQ", 13), rep("MQ", 5), rep("LQ", 6), rep("MQ", 5))
 #Run PERMANOVA with adonis function
@@ -86,9 +91,6 @@ summary (indval)
 fish.rel <- decostand(fish, method = "total")
 phi <- multipatt (fish.rel, cluster = quality, func = "r.g", control = how(nperm = 999))
 summary(phi)
-
-
-
 
 
 ```
@@ -136,8 +138,10 @@ In the R code chunk below, do the following:
 5. calculate the explained variation on the first and second constrained axes,
 6. plot the constrained ordination results including labeled points for each site, and
 7. add vectors that demonstrate the influence of each environmental factor the constrained ordination.   
+
 ```{r}
 
+fish.db <- vegdist(fish, methood = "bray")
 #Define environmental matrix
 env.chem <- as.matrix(doubs$env[-8, 5:11])
 
@@ -311,4 +315,67 @@ mtext("Variation Partitioning of\nDoubs Fish Diversity", side = 3, line = -3)
 Load the dataset from that you and your partner are using for the team project. 
 Use one of the hypothesis-testing tools introduced in the beta diversity module. 
 Interpret the findings of your data with respect to principles of biodiversity. 
+>Habitat explains 5.9% of the variation while land type explains 6.4% of the variation in microbacterial community based on the adjusted R2 values but the p-value being more than 0.05 suggests that this influence is not certain and might have occured by chance.dbRDA analysis suggests that environmental factors like Mean Annual Precipitation (MAP), Mean Annual Temperature (MAT), and average temperature variation significantly influence species composition.
+
+```{r}
+load("/cloud/project/QB2025_Vaidya/longdataBac_objects2_datadryad.rda")
+Bacteria <- longdataBac_datadryad #rename
+rm(longdataBac_datadryad)
+load("/cloud/project/QB2025_Vaidya/Bac_wide_plot_final2_datadryad (1).rda")
+Bac_env <- Bac_wide_plot #rename
+rm(Bac_wide_plot)
+bac <- read.table("/cloud/project/QB2025_Vaidya/bacteria_div.txt", 
+                       header = TRUE, sep = "\t", stringsAsFactors = FALSE, row.names = 1)
+
+## Data cleaning ----
+#Matrix based on diff habitat type 
+#bac_by_site <- with(Bacteria, tapply(Counts, list(PlotID, Sender), sum, default = 0)) 
+#write.table(bac_by_site, file = "bacteria_div.txt", sep = "\t", row.names = TRUE, col.names = NA, quote = FALSE)
+
+#drop some rows 
+bac.reduced <- bac[!grepl("_3|_2|_1", rownames(bac)), ]
+env.reduced <- Bac_env[!grepl("_3|_2|_1", Bac_env$PlotID), ]
+rownames(env.reduced) <- env.reduced$PlotID
+env.reduced <- env.reduced[, -c(1, 2, 3, 9)]
+#write.table(env.reduced, file = "bac_env.txt", sep = "\t", row.names = TRUE, col.names = NA, quote = FALSE)
+Bacteria.reduced <- Bacteria[!grepl("_3|_2|_1", Bacteria$PlotID), ]
+xy <- aggregate(cbind(POINT_X, POINT_Y) ~ PlotID, data = Bacteria.reduced, FUN = mean) #make the spatial matrix
+
+## Distance matrix
+# Bray-Curtis: 
+bac.bc <- vegdist(bac.reduced, method = "bray", upper = TRUE, diag = TRUE)
+# Jaccard 
+bac.jac <- vegdist(bac.reduced, method = "jaccard", upper = TRUE, diag = TRUE)
+
+## Try hypothesis testing ----
+
+### PERMANOVA ----
+# None of these are significant, no matter using jaccard or bray
+land_type <- env.reduced$Landscape
+habitat <- env.reduced$Habitat
+adonis2(bac.reduced ~ land_type, method = "jaccard", permutation = 999)
+adonis2(bac.reduced ~ land_type, method = "bray", permutation = 999)
+adonis2(bac.reduced ~ habitat, method = "jaccard", permutation = 999)
+adonis2(bac.reduced ~ habitat, method = "bray", permutation = 999)
+
+### Mantel test ----
+env.bc <- vegdist(scale(env.reduced[3:5]), method = "euclid") # env matrix
+mantel(bac.bc, env.bc)
+
+### Constrained Ordination ----
+env <- as.matrix(env.reduced[3:5]) #Continous env conditions
+env_clean <- na.omit(env)
+bac_clean <- bac[rownames(env_clean), , drop = FALSE] # Ensure matching rows
+env[is.na(env)] <- mean(env, na.rm = TRUE)  # Replace with column mean
+bac <- bac[rownames(env), , drop = FALSE]
+bac.dbrda <- dbrda(bac ~ ., as.data.frame(env_clean)) # Using abundance-based distance
+bac.dbrda_j <- dbrda(bac.jac ~ ., as.data.frame(env)) # using incidence based distance
+ordiplot(bac.dbrda)
+ordiplot(bac.dbrda_j) #This does not have ANOVA result
+
+
+
+
+
+```
 
